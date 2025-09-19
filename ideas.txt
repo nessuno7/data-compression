@@ -1,0 +1,89 @@
+save everything in a string of bits
+
+use WSL for timestamp:
+#include <ctime>
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+
+    int64_t ms = ts.tv_sec * 1000LL + ts.tv_nsec / 1000000LL;
+---------------------------------------------
+
+# first line: Per Log <TIMESTAMP>
+# second line: Value <VARIABLE_NAME> (<VARIABLE_DESCRIPTOR>): ID
+
+TIMESTAMP: 64 bit
+Variable_name: string (UTF-8) only characters numbers and sign (8 bits)
+Variable_description: type of variable (int (32 or 64 signed or unisgned), float (32 signed or unsigned), double (64 signed or unisgned))
+ID: unsigned 10 bit (gives 1023 possible variables)
+
+
+
+# data lines: TIMESTAMP, ID, Value
+
+
+to prevent leak of data, at the beginning of each line there will be an unisgned int that tells the lenght of the line:
+LENGHT 
+
+every n data lines, buffer of 128 empty bits, to signal the end of a block. 
+
+
+Loop thorugh the Variable rows:
+Create vectir of BinValueLine: stores string of name or variable, name of type and ID of type. Extra variable uint8_t type (default = 0)
+
+if (value == "0" or "1")
+    type is bool
+    type = 4
+else if (value == "1"):
+    type is bool
+    type = 4
+if( '.' in strign of the value):
+    try{ stof() type = 0}
+    except{ stod() type = 1}
+    
+else():
+    try{ stoi() type = 2}
+    except {stoll() type = 3}
+
+eg 
+swtich(type): 
+    case '0':
+        unisgned float (64 bit) for the type of the value
+        BinData<float> 
+    case '1':
+        BinData<double>
+    case '2':
+        BinData<int>
+    case '3':
+        BinData<longlong>
+    case '4':
+        BinData<double>
+    case 'B':
+        BinData<bool>
+
+
+
+save a varible into a unsigned float 64 bit until you have know whether it is an int float or whatever.
+
+
+To save the data 
+for each line:
+first few bits (decide how may) is size of the line
+2 bits to show ehther is is first line, a BinValueLine line or a BinData line
+
+order of save:
+MetaData: 1 byte = 1, metadata string
+binValueLine: 1 byte = 2, 2 bytes = id, 1 byte = type (eg int, float), 1 byte = defined, 2 bytes name string size, name, 2 bytes descriptor size, descriptor. 
+BinData: 1 byte = 3, 1 bytes = type, n bytes depending of isze of data, 4 bytes timestamp, 2 bytes id.
+
+
+struct BinString
+for each string we need to save: lenght of string (how many bites) + string itself.
+
+type numer:
+0 = bool
+1=float 
+2=double
+3=int
+4= long long
+
+Bin data save in order: 1 byte for the type of line (Bind data = 3, ValueLine =2, Metadta = 1), 1 byte for the type number (this give info on the how long the next elemtn is), data is stored, Timestamp, id 
